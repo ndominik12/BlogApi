@@ -41,8 +41,32 @@ namespace BlogApi.Controllers
 
             connector.Close();
 
-            return new { message = "Sikeres lekérdezés" };
+            return new { message = "Sikeres lekérdezés", result = bloggers };
         }
+        [HttpGet("count")]
+        public object GetBloggerCount()
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+
+            connector.Open();
+
+            string sql = "SELECT COUNT(*) AS cnt FROM `blogger`";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+
+            var datareader = cmd.ExecuteReader();
+
+            int count = 0;
+            if (datareader.Read())
+            {
+                count = datareader.GetInt32(0);
+            }
+
+            connector.Close();
+
+            return new { message = "Sikeres lekérdezés", count = count };
+        }
+
         [HttpGet("{id}")]
         public object GetBloggerById(int id)
         {
@@ -134,30 +158,29 @@ namespace BlogApi.Controllers
                 return new { message = "Sikertelen törlés. Nincs ilyen blogger.", result = deleteBloggerDto };
             }
         }
-        [HttpDelete]
-        public object DeleteBlogger([FromBody] int id)
+        [HttpPut("put")]
+        public object PutBloggerDto(PutBloggerDto putBloggerDto)
         {
             var connector = new MySqlConnector.MySqlConnection(ConnetionString);
-
             connector.Open();
-
-            string sql = @"DELETE FROM `blogger` WHERE id = @id";
-
+            string sql = @"UPDATE `blogger` 
+                           SET `name` = @name, `age` = @age, `password` = @password
+                           WHERE `email` = @email;";
             var cmd = new MySqlConnector.MySqlCommand(sql, connector);
-            cmd.Parameters.AddWithValue("@id", id);
-
+            cmd.Parameters.AddWithValue("@name", putBloggerDto.Name);
+            cmd.Parameters.AddWithValue("@age", putBloggerDto.Age);
+            cmd.Parameters.AddWithValue("@password", putBloggerDto.Password);
+            cmd.Parameters.AddWithValue("@email", putBloggerDto.Email);
             int rowsAffected = cmd.ExecuteNonQuery();
-
             connector.Close();
-
             if (rowsAffected > 0)
             {
-                return new { message = "Sikeres törlés.", result = id };
+                return new { message = "Sikeres frissítés.", result = putBloggerDto };
             }
             else
             {
-                return new { message = "Sikertelen törlés. Nincs ilyen blogger.", result = id };
+                return new { message = "Sikertelen frissítés. Nincs ilyen blogger.", result = putBloggerDto  };
             }
         }
-    } 
+    }
 }
