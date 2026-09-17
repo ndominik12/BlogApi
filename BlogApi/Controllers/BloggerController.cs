@@ -38,10 +38,10 @@ namespace BlogApi.Controllers
                 blogger.RegistrationTime = datareader.GetDateTime("registration_time");
                 bloggers.Add(blogger);
             }
-            
+
             connector.Close();
 
-            return new { message = "Sikeres lekérdezés"};
+            return new { message = "Sikeres lekérdezés" };
         }
         [HttpGet("{id}")]
         public object GetBloggerById(int id)
@@ -82,7 +82,82 @@ namespace BlogApi.Controllers
             connector.Close();
 
             return new { message = "sikeres hozzáadás.", result = addNewBloggerDto };
-        }
-    }
-}
 
+        }
+
+        [HttpPost("login")]
+        public object LoginBlogger(LoginBloggerDto loginBloggerDto)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+
+            connector.Open();
+
+            string sql = @"SELECT `id` FROM `blogger` 
+                           WHERE `email` = @email AND `password` = @password;";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@email", loginBloggerDto.Email);
+            cmd.Parameters.AddWithValue("@password", loginBloggerDto.Password);
+
+            var datareader = cmd.ExecuteReader();
+
+            if (datareader.Read() == true)
+            {
+                var id = datareader.GetInt32("id");
+                connector.Close();
+                return new { message = "Sikeres belépés.", result = datareader.GetInt32("id") };
+            }
+            else
+            {
+                connector.Close();
+                return new { message = "Sikertelen belépés.", result = loginBloggerDto };
+            }
+        }
+        [HttpDelete("delete")]
+        public object DeleteBlogger(DeleteBloggerDto deleteBloggerDto)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+            connector.Open();
+            string sql = @"DELETE FROM `blogger` 
+                           WHERE `email` = @email AND `password` = @password;";
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@email", deleteBloggerDto.Email);
+            cmd.Parameters.AddWithValue("@password", deleteBloggerDto.Password);
+            int rowsAffected = cmd.ExecuteNonQuery();
+            connector.Close();
+            if (rowsAffected > 0)
+            {
+                return new { message = "Sikeres törlés.", result = deleteBloggerDto };
+            }
+            else
+            {
+                return new { message = "Sikertelen törlés. Nincs ilyen blogger.", result = deleteBloggerDto };
+            }
+        }
+        [HttpDelete]
+        public object DeleteBlogger([FromBody] int id)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+
+            connector.Open();
+
+            string sql = @"DELETE FROM `blogger` WHERE id = @id";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            connector.Close();
+
+            if (rowsAffected > 0)
+            {
+                return new { message = "Sikeres törlés.", result = id };
+            }
+            else
+            {
+                return new { message = "Sikertelen törlés. Nincs ilyen blogger.", result = id };
+            }
+        }
+    } 
+}
