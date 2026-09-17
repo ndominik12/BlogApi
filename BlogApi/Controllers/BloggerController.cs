@@ -38,10 +38,36 @@ namespace BlogApi.Controllers
                 blogger.RegistrationTime = datareader.GetDateTime("registration_time");
                 bloggers.Add(blogger);
             }
-
             connector.Close();
 
             return new { message = "Sikeres lekérdezés", result = bloggers };
+        }
+
+        [HttpGet("names")]
+        public object GetBloggerNames()
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+            connector.Open();
+
+            string sql = "SELECT `name`, `email` FROM `blogger` ORDER BY `name` ASC";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+
+            var datareader = cmd.ExecuteReader();
+
+            var result = new List<DTOs.BloggerNameEmailDto>();
+
+            while (datareader.Read())
+            {
+                var item = new DTOs.BloggerNameEmailDto();
+                item.Name = datareader.GetString("name");
+                item.Email = datareader.IsDBNull(datareader.GetOrdinal("email")) ? null : datareader.GetString("email");
+                result.Add(item);
+            }
+
+            connector.Close();
+
+            return new { message = "Sikeres lekérdezés", result = result };
         }
         [HttpGet("count")]
         public object GetBloggerCount()
