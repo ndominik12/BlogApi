@@ -39,5 +39,24 @@ namespace BlogApi.Controllers
 
             return new { message = "Sikeres lekérdezés"};
         }
+        [HttpGet]
+        public object GetBloggerById(int id)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+
+            connector.Open();
+
+            string sql = "SELECT * FROM `blogger` WHERE id = @id";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            var datareader = cmd.ExecuteReader();
+            datareader.Read();
+
+            connector.Close();
+            return new { message = "Sikeres találat" };
+        }
     }
 }
+
