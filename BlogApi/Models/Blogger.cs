@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
 
 /// <summary>
 /// Summary description for Blogger
@@ -8,18 +7,19 @@ using System.Security.Cryptography.X509Certificates;
 namespace BlogApi.Models
 {
     public class Blogger
-{
-	public Blogger()
-	{
-			public int Id { get; set; }
-            public string Name { get; set; }
-            public string Email { get; set; }
-            public int Age { get; set; }
-            public string Password { get; set; }
-            public DateTime RegistrationTime { get; set } 
+    {
+        public Blogger()
+        {
+            //
+            // TODO: Add constructor logic here
+            //
+        }
 
-        //
-        // TODO: Add constructor logic here
-        //
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int Age { get; set; }
+        public string Password { get; set; } = string.Empty;
+        public DateTime RegistrationTime { get; set; } = DateTime.UtcNow;
     }
 }
