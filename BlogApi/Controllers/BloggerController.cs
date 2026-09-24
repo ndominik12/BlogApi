@@ -164,6 +164,32 @@ namespace BlogApi.Controllers
             return new { message = "Sikeres lekérdezés", count = count };
         }
 
+        // GET: api/blogger/posts/count
+        // Visszaadja az összes post (bejegyzés) számát az adatbázisban
+        [HttpGet("posts/count")]
+        public object OsszesPostSzam()
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+
+            connector.Open();
+
+            string sql = "SELECT COUNT(*) AS cnt FROM `post`";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+
+            var datareader = cmd.ExecuteReader();
+
+            int count = 0;
+            if (datareader.Read())
+            {
+                count = datareader.GetInt32(0);
+            }
+
+            connector.Close();
+
+            return new { message = "Sikeres lekérdezés", count = count };
+        }
+
         [HttpGet("{id}")]
         public object GetBloggerById(int id)
         {
