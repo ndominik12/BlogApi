@@ -69,6 +69,34 @@ namespace BlogApi.Controllers
 
             return new { message = "Sikeres lekérdezés", result = result };
         }
+
+        // GET: api/blogger/find?name=nev&email=email
+        [HttpGet("find")]
+        public object LekerdezNevEsEmail([FromQuery] string name, [FromQuery] string email)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+            connector.Open();
+
+            string sql = "SELECT `name`, `email` FROM `blogger` WHERE `name` = @name AND `email` = @email LIMIT 1";
+
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@name", name);
+            cmd.Parameters.AddWithValue("@email", email);
+
+            var datareader = cmd.ExecuteReader();
+
+            if (datareader.Read())
+            {
+                var item = new DTOs.BloggerNameEmailDto();
+                item.Name = datareader.GetString("name");
+                item.Email = datareader.IsDBNull(datareader.GetOrdinal("email")) ? null : datareader.GetString("email");
+                connector.Close();
+                return new { message = "Sikeres találat", result = item };
+            }
+
+            connector.Close();
+            return new { message = "Nincs találat", result = (object?)null };
+        }
         [HttpGet("count")]
         public object GetBloggerCount()
         {
