@@ -97,6 +97,49 @@ namespace BlogApi.Controllers
             connector.Close();
             return new { message = "Nincs találat", result = (object?)null };
         }
+
+        // GET: api/blogger/{id}/posts
+        // Visszaadja egy blogger nevét és az összes hozzátartozó post title és content értékét
+        [HttpGet("{id}/posts")]
+        public object GetBloggerWithPosts(int id)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+            connector.Open();
+
+            // Először megszerezzük a blogger nevét
+            string sqlB = "SELECT `name` FROM `blogger` WHERE `id` = @id LIMIT 1";
+            var cmdB = new MySqlConnector.MySqlCommand(sqlB, connector);
+            cmdB.Parameters.AddWithValue("@id", id);
+            var readerB = cmdB.ExecuteReader();
+
+            if (!readerB.Read())
+            {
+                connector.Close();
+                return new { message = "Nincs ilyen blogger", result = (object?)null };
+            }
+
+            var bloggerName = readerB.GetString("name");
+            readerB.Close();
+
+            // Majd lekérdezzük a hozzátartozó posztokat (title, content)
+            string sqlP = "SELECT `title`, `content` FROM `post` WHERE `blogger_id` = @id ORDER BY `id` DESC";
+            var cmdP = new MySqlConnector.MySqlCommand(sqlP, connector);
+            cmdP.Parameters.AddWithValue("@id", id);
+            var readerP = cmdP.ExecuteReader();
+
+            var posts = new List<object>();
+            while (readerP.Read())
+            {
+                var title = readerP.IsDBNull(readerP.GetOrdinal("title")) ? null : readerP.GetString("title");
+                var content = readerP.IsDBNull(readerP.GetOrdinal("content")) ? null : readerP.GetString("content");
+                posts.Add(new { title, content });
+            }
+
+            readerP.Close();
+            connector.Close();
+
+            return new { message = "Sikeres lekérdezés", result = new { name = bloggerName, posts = posts } };
+        }
         [HttpGet("count")]
         public object GetBloggerCount()
         {
