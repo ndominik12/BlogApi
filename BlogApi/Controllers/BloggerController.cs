@@ -140,6 +140,29 @@ namespace BlogApi.Controllers
 
             return new { message = "Sikeres lekérdezés", result = new { name = bloggerName, posts = posts } };
         }
+
+        // GET: api/blogger/{id}/posts/count
+        // Visszaadja, hogy az adott blogger-nek hány bejegyzése van
+        [HttpGet("{id}/posts/count")]
+        public object BloggerPostCount(int id)
+        {
+            var connector = new MySqlConnector.MySqlConnection(ConnetionString);
+            connector.Open();
+
+            string sql = "SELECT COUNT(*) AS cnt FROM `post` WHERE `blogger_id` = @id";
+            var cmd = new MySqlConnector.MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            var reader = cmd.ExecuteReader();
+            int count = 0;
+            if (reader.Read())
+            {
+                count = reader.GetInt32(0);
+            }
+
+            connector.Close();
+            return new { message = "Sikeres lekérdezés", bloggerId = id, count = count };
+        }
         [HttpGet("count")]
         public object GetBloggerCount()
         {
